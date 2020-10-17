@@ -1,0 +1,87 @@
+/* Adapted and Modified for CMPS3131 - Adv. GUI Programming with permission from Rob Miller, Copyright (c) 2017 MIT, all rights reserved.
+ * Redistribution of original or derived work requires permission of Instructor. See Collaboration Policy.
+ */
+
+/* REMOVE ME - dashed lines and height for debugging */
+/*#mainColumn {
+  outline: 1px dashed orange;
+  height: 200px;
+}
+*/
+
+/* Your css code here! */
+
+.container{
+	
+	background-color:#f9daf7;
+}
+
+#firstHeader{
+
+  font-family: "Courier New";
+  font-weight: bold;
+  color: #46def4;
+}
+
+
+#mainColumn{
+
+  padding-top: 30px;
+  width: 50%;
+  height: 50%;
+  /*margin-left: -250px;
+  margin-top: 50px;*/
+
+}
+
+#firstColumn{
+
+  padding-top: 20px;
+  /*margin-left: -250px;
+  margin-top: 50px;*/
+
+}
+
+#lastColumn{
+
+  padding-top: 20px;
+  /*margin-left: -250px;
+  margin-top: 50px;*/
+
+}
+
+table{
+
+  width: 320px;
+  height: 320px;
+}
+
+/*
+#firstcolumn{
+
+  padding-left: 150px;
+  margin-top: 50px;
+
+}*/
+
+/*
+#upButton{
+
+  margin-left: 100px;
+  margin-top: 30px;
+
+}
+
+#rightButton{
+
+  margin-left: 150px;
+}
+
+#leftButton{
+
+  margin-top: 10px;
+}
+*/
+
+
+

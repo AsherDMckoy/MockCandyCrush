@@ -1,0 +1,531 @@
+<!--
+CandyCrush
+Your Name: Asher D. Mckoy, Paul Yong (Worked in Pairs)
+Collaborators:https://www.w3schools.com/jsref/jsref_tolowercase.asp
+              YouTube: https://www.youtube.com/watch?v=XFGtGzZhy_A
+			  Comment: Used W3 Schools alot for examples and references
+-->
+<!DOCTYPE html>
+<html>
+<!--
+/* Adapted and Modified for CMPS3131 - Adv. GUI Programming with permission from Rob Miller, Copyright (c) 2017 MIT, all rights reserved.
+ * Redistribution of original or derived work requires permission of Instructor. See Collaboration Policy.
+ */
+-->
+
+<head>
+<meta charset="utf-8">
+<title>CandyCrush</title>
+
+<!-- Load style sheets -->
+<link rel="stylesheet" href=
+  "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.css">
+
+<link rel="stylesheet" href="mainLayout.css">
+
+<!-- Use mobile-aware viewport -->
+<meta name="viewport" content=
+  "width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!-- Load any supplemental Javascript libraries here -->
+<script src=
+  "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src=
+  "https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.2/seedrandom.js">
+</script>
+<script src="candy.js"></script>
+<script src="board.js"></script>
+<script src="rules.js"></script>
+
+<script>
+
+// By default, the first board loaded by your page will be the same 
+// each time you load (which is accomplished by "seeding" the random
+// number generator. This makes testing (and grading!) easier!
+Math.seedrandom(0);
+
+
+// A short jQuery extension to read query parameters from the URL.
+$.extend({
+  getUrlVars: function() {
+    var vars = [], pair;
+    var pairs = window.location.search.substr(1).split('&');
+    for (var i = 0; i < pairs.length; i++) {
+      pair = pairs[i].split('=');
+      vars.push(pair[0]);
+      vars[pair[0]] = pair[1] &&
+          decodeURIComponent(pair[1].replace(/\+/g, ' '));
+    }
+    return vars;
+  },
+  getUrlVar: function(name) {
+    return $.getUrlVars()[name];
+  }
+});
+
+// constants
+var DEFAULT_BOARD_SIZE = 8;
+
+// data model at global scope for easier debugging
+var board;
+var rules;
+
+// initialize board
+if ($.getUrlVar('size') && $.getUrlVar('size') >= 3) {
+  board = new Board($.getUrlVar('size'));
+} else {
+  board = new Board(DEFAULT_BOARD_SIZE);
+}
+
+// load a rule
+rules = new Rules(board);
+
+// Final initialization entry point: the Javascript code inside this block
+// runs at the end of start-up when the page has finished loading.
+$(document).ready(function()
+{
+	rules.prepareNewGame(); //At the start, prepares new game and gets candies from the board
+	console.log("Original Candies" + board.getAllCandies());
+  
+	disableControlButtons(); //Disables all control buttons
+	
+	attemptingToAccessButtonsWithKeys();
+  
+/*$("#COButton").prop("disabled", true);    
+   $("#COButton").css("background-color", "LightGray");*/
+});
+
+
+// Custom Function used to get column from the input in the text box
+//--------------------------------------------------------------------------
+var hash={ "a":"0","b":"1","c":"2","d":"3","e":"4","f":"5","g":"6","h":"7"}; 
+
+function getCol(input){
+	for( var key in hash ){
+	
+	if( key === input ){
+	
+		return hash[key];
+		}
+		
+	}
+}
+//--------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------
+
+// Custom Function used to crush candies
+//--------------------------------------------------------------------------
+function vCrushButton(){    
+   if(rules.getCandyCrushes().length > 0){
+       console.log("Valid Crush");
+       $("#COButton").prop("disabled", false);    
+       $("#COButton").css("background-color", "#00E5EE");
+   }else{
+       console.log("invalid crush");
+       $("#COButton").prop("disabled", true);    
+       $("#COButton").css("background-color", "LightGray");
+   }
+   
+   $('#txtbox').focus();
+}
+//--------------------------------------------------------------------------
+
+//This disables buttons unless move is valid
+//--------------------------------------------------------------------------
+function disableControlButtons(){
+   $("#upButton").prop("disabled", true);
+   $("#upButton").css("background-color", "LightGray");
+   
+   $("#downButton").prop("disabled", true);
+   $("#downButton").css("background-color", "LightGray");
+   
+   $("#rightButton").prop("disabled", true);
+   $("#rightButton").css("background-color", "LightGray");
+   
+   $("#leftButton").prop("disabled", true);    
+   $("#leftButton").css("background-color", "LightGray");
+   
+  /* $("#COButton").prop("disabled", true); //   
+   $("#COButton").css("background-color", "LightGray");*/
+   
+   vCrushButton();
+}
+//---------------------------------------------------------------------------
+
+/* Event Handlers */
+// access the candy object with info.candy
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+function attemptingToAccessButtonsWithKeys(){ //WORKS IF AND ONLY IF TAB HAS HIGHLIGHTED THE BUTTONS, N GENERATES 
+document.getElementById("NGButton")			  //NEW GAME WHEN HIGHLIGHTED BY TAB AND THE SPACE BAR GENERATES A CRUSH ONCE
+    .addEventListener("keyup", function(event) { //IF AND ONLY IF THE BUTTON IS HIGHLIGHTED BY THE TAB
+    event.preventDefault();
+    if (event.keyCode == 78) {
+        document.getElementById("NGButton").click();
+    }
+});
+document.getElementById("COButton")
+    .addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode == 32) {
+        document.getElementById("COButton").click();
+    }
+});
+}
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+// add a candy to the board
+//--------------------------------------------------------------------------
+$(board).on('add', function(e, info)
+{
+
+	var candy = info.candy; //Creates an instance of the candy and stores it in the variable candy
+	console.log("Candy added: " + JSON.stringify(info.candy));
+	var candyCrushTable = document.getElementById("candyCrushTable");
+	candyCrushTable.rows[candy.row].cells[candy.col].style.backgroundColor = candy.toString();
+
+});
+//--------------------------------------------------------------------------
+
+// move a candy on the board
+//--------------------------------------------------------------------------
+$(board).on('move', function(e, info)
+{
+
+	var candy = info.candy;
+	console.log("Candy added: " + JSON.stringify(info.candy));
+	var candyCrushTable = document.getElementById("candyCrushTable");
+	candyCrushTable.rows[candy.row].cells[candy.col].style.backgroundColor = candy.toString();
+});
+//--------------------------------------------------------------------------
+
+// remove a candy from the board
+//--------------------------------------------------------------------------
+$(board).on('remove', function(e, info)
+{
+	
+	var candyCrushTable = document.getElementById("candyCrushTable");
+	candyCrushTable.rows[info.fromRow].cells[info.fromCol].style.backgroundColor = "gray";
+ 
+});
+//--------------------------------------------------------------------------
+
+//Score Update
+//--------------------------------------------------------------------------
+$(board).on('scoreUpdate', function(e, info)
+{
+  // Your code here. To be implemented in pset 2.
+});
+//--------------------------------------------------------------------------
+
+
+
+// Button Events
+
+
+//This allows a new game to be generated when the new game button is clicked
+//--------------------------------------------------------------------------
+$(document).on('click', "#NGButton", function(evt)
+{
+  board.clear(); //Clears the board 
+  rules.prepareNewGame();// calls function to generate a new board
+  console.log("New Candies" + board.getAllCandies()); // calls function to generate new candies
+  
+});
+//--------------------------------------------------------------------------
+
+//This allows a candy to move upwards when the up button is pressed
+//--------------------------------------------------------------------------
+$(document).on('click', "#upButton", function(evt) //
+{
+     
+	 var txt = document.getElementById('txtbox').value.toLowerCase();//Read input from user
+	 var col = parseInt(hash[txt[0]]); //converts the value to an int
+	 var row = parseInt(txt.replace(txt[0], "")) - 1; //does the same like line above
+	 var candy = board.getCandyAt(row, col); //Stores that instance of candy in the candy vairable to be moved
+	 console.log(hash[txt[0]]); //Debbugg
+	 console.log(candy.toString()); //Debbugg
+	
+	if(rules.isMoveTypeValid(candy, "up")){
+		console.log("Move is Valid"); //Debbugg
+		board.flipCandies(candy, board.getCandyInDirection(candy, "up"));//Calls function to flip candy
+		/*vCrushButton();*/ 
+	}
+	else{            
+		console.log("Move is Invalid"); //Debbugg
+		/*disableControlButtons();*/
+	}
+	//These functions clear and focus the text box   
+	$('#txtbox').val("");
+	$('#txtbox').focus();
+	
+	disableControlButtons();
+	vCrushButton();
+});
+//--------------------------------------------------------------------------
+
+//This allows a candy to move downwards when the down button is pressed
+//-------------------------------------------------------------------------- 
+$(document).on('click', "#downButton", function(evt)
+{
+
+ 	 var txt = document.getElementById('txtbox').value.toLowerCase();
+	 var col = parseInt(hash[txt[0]]);
+	 var row = parseInt(txt.replace(txt[0], "")) - 1;
+	 var candy = board.getCandyAt(row, col);
+	 console.log(hash[txt[0]]); //Debbugg 
+	 console.log(candy.toString());//Debbugg 
+	
+	if(rules.isMoveTypeValid(candy, "down")){ //Checks to validate move in direction
+		console.log("Move is Valid");//Debbugg  
+		board.flipCandies(candy, board.getCandyInDirection(candy, "down"));            
+	}
+	else{            
+		console.log("Move is Invalid");//Debbugg 
+	}
+
+	//Clears txt box and focuses curser respectively
+	$('#txtbox').val("");
+	$('#txtbox').focus();
+  
+  //Calls the below functions to disable all controls after user is finished moving the candy
+    disableControlButtons();
+    vCrushButton();
+});
+//--------------------------------------------------------------------------
+
+//This allows a candy to move left when the left button is pressed
+//--------------------------------------------------------------------------
+$(document).on('click', "#leftButton", function(evt)
+{
+
+	 var txt = document.getElementById('txtbox').value.toLowerCase(); // gets value from txtbox
+	 var col = parseInt(hash[txt[0]]);
+	 var row = parseInt(txt.replace(txt[0], "")) - 1;
+	 var candy = board.getCandyAt(row, col);
+	 console.log(hash[txt[0]]); //all console.log are Just for me to keep track
+	 console.log(candy.toString());
+	 
+	if(rules.isMoveTypeValid(candy, "left")){ //Calls function is moveTypeValid to check if left action is valid
+		
+		console.log("Move is Valid");  // For me to check if it is valid  
+		board.flipCandies(candy, board.getCandyInDirection(candy, "left")); // calls function to flip candy in left direction         
+	}
+	else{         // does not to anything
+		
+		console.log("Move is Invalid");// just to check
+	}
+
+	$('#txtbox').val("");
+	$('#txtbox').focus();
+
+    disableControlButtons();
+    vCrushButton();
+});
+//--------------------------------------------------------------------------
+
+//This allows a candy to move right when the right button is pressed
+//--------------------------------------------------------------------------
+$(document).on('click', "#rightButton", function(evt)
+{
+
+	 var txt = document.getElementById('txtbox').value.toLowerCase(); //The to lower case allows the user to input Upper case in the text box 
+	 var col = parseInt(hash[txt[0]]); // converts value to int
+	 var row = parseInt(txt.replace(txt[0], "")) - 1;
+	 var candy = board.getCandyAt(row, col); // stores the instance of the candy at row,col that user specified in the variable candy
+	 
+	if(rules.isMoveTypeValid(candy, "right")){
+		   console.log("Move is Valid");            
+	   }else{            
+		   console.log("Move is Invalid");
+	}
+	board.flipCandies(candy, board.getCandyInDirection(candy, "right"));  //Move into inside if above  
+
+    $('#txtbox').val(""); // clears txt box
+    $('#txtbox').focus(); // focuses the curser
+  
+    disableControlButtons(); //function that disables all controls at the start
+    vCrushButton(); //Function that disables the crush button
+});
+//--------------------------------------------------------------------------
+
+//This allows a candies to be crushed when the crush once button is pressed
+//--------------------------------------------------------------------------
+$(document).on('click', "#COButton", function(evt)
+{
+
+	var ccList = rules.getCandyCrushes();  //stores crushable candies in ccList
+	
+	if(ccList.length > 0 ) { // checks length
+	
+		rules.removeCrushes(ccList); //Calls remove then passes the values stored in ccList
+		setTimeout(function(){ 
+			rules.moveCandiesDown(); // calls function to "repopulate the spaces",where the candies were crushed
+			vCrushButton(); //Function crushed candies
+		}, 500); // 500 before grey areas in the box are filled with candy
+	}
+});
+//--------------------------------------------------------------------------
+
+//This reads the input from the text box and checks if the move is valid
+//--------------------------------------------------------------------------
+$(document).on('input', "#txtbox", function(evt)
+{
+   var inputValue = $('#txtbox').val().trim().toLowerCase(); 
+      
+   if(inputValue.length >= 2){
+		var col = parseInt(hash[inputValue[0]]); //Converts value from text box to an int 
+		var row = parseInt(inputValue.replace(inputValue[0], "")) - 1; //Converts value from text box to an int and minus 1 because hash starts from 0
+		
+		if(!isNaN(col) && !isNaN(row)){ // checks if the col and row is a number
+			if((col >= 0 && col < DEFAULT_BOARD_SIZE) && (row >= 0 && row < DEFAULT_BOARD_SIZE)){
+				var candy = board.getCandyAt(row, col); // creates an instance of the candy at the location the user input
+				if(rules.isMoveTypeValid(candy, "up")){ //Checks if move is valid, calls function from rules
+					$("#upButton").prop("disabled", false); // if it is valid, does not disable
+					$("#upButton").css("background-color", "#00E5EE"); // back color becomes turquiose
+				}
+				else{
+					$("#upButton").prop("disabled", true); // if the move is not valid then the button is disabled
+					$("#upButton").css("background-color", "LightGray"); // background-color becomes grey
+				}
+				
+				if(rules.isMoveTypeValid(candy, "down")){ // Checks if the move is valid for "downwards" 
+	 
+					$("#downButton").prop("disabled", false); // if valid button is enabled
+					$("#downButton").css("background-color", "#00E5EE");//background-color is turquiose
+				}
+				else{
+   
+					$("#downButton").prop("disabled", true);//if not valid, button is disabled
+					$("#downButton").css("background-color", "LightGray"); //background-color is grey
+				}
+   
+				if(rules.isMoveTypeValid(candy, "left")){ //Checks if move is valid for a left action, 
+				
+					$("#leftButton").prop("disabled", false); // if it is, then button is enabled
+					$("#leftButton").css("background-color", "#00E5EE");//Changes back ground color to turquiose
+				}
+				else{
+   
+					$("#leftButton").prop("disabled", true); // if not valid, disables
+                    $("#leftButton").css("background-color", "LightGray"); //color is grey if button disabled
+				}
+				
+				if(rules.isMoveTypeValid(candy, "right")){ // checks move for validity
+	 
+					$("#rightButton").prop("disabled", false );//enables button if valid
+					$("#rightButton").css("background-color", "#00E5EE");//button changes color from grey
+				}
+				else{
+   
+					$("#rightButton").prop("disabled", true);//if not valid then button disabled
+					$("#rightButton").css("background-color", "LightGray");//back to a grey color
+				}  
+				
+			} 
+			else{
+				disableControlButtons();//If col and row values not valid, disable controls
+			}
+	    }
+		else{
+			disableControlButtons();// if value is equal to NaN (not a number) , then disable controls 
+		}
+   
+	}
+	else{
+		disableControlButtons(); //Disable controls if input values amounts to greater than two 
+	}
+});
+//--------------------------------------------------------------------------
+
+// keyboard events arrive here
+$(document).on('keydown', function(evt) {
+  // Your code here.
+});
+
+</script>
+
+
+</head>
+
+<body>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-4" id="firstColumn">
+      <div>
+      <!-- Column 1 Code Here -->
+      <!-- Start of column 1 code -->
+        <h1 id="firstHeader">Candy Crush</h1>
+		<br>
+		<br>
+		<form>
+			Enter Name: <input type=" text" value="" name="toMove" id ="namebox">
+	   </form>
+	   <br>
+	   <br>
+        <input type="button" id="NGButton" class="btn" value =" New Game ">
+
+        <!-- End of column 1 code -->
+      
+      </div>
+  </div>
+
+    <div class="col-md-4" id="mainColumn">
+
+      <!-- Column 2 Code Here -->
+	  <!--This generates the table-->
+	  <script language="javascript" type="text/javascript">
+	
+        var rows = 8;
+        var cols = 8;
+        var Gadd = 1;
+        var Gnum = 0;
+        var colNum = 0;
+        var	table = '';
+        var label = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']; //Labels for the columns
+        
+        for(var i = 1; i <= rows; i++) {
+
+          for (var d = 0; d < cols; d++)
+          {
+            Gnum = d + Gadd;
+			table += '<td>' + label[d] + i +  '</td>'; // adds a label to each column and a number
+          }
+          table += '</tr>';
+        }
+        document.write('<table class = "table" style="width:320px  height:320px" id ="candyCrushTable">' + table + '</table>');
+		
+      </script>
+	
+      <!--End of Column 2 code-->
+
+    </div>
+
+    <div class="col-md-4" id="lastColumn">
+
+      <!-- Column 3 Code Here -->
+      <!--These are the up, down, left and right buttons that allow candies to move-->
+      <form class = "btn">
+        Move: <input type=" text" value="" name="toMove" id ="txtbox">
+        <br>
+        <br>
+        <input type="button" class="btn" id="upButton" value="^">
+        <br>
+        <input type="button" class="btn" id="leftButton" value="<">
+        <input type="button" class="btn" id="rightButton" value=">">
+        <br>
+        <input type="button" class="btn" id="downButton" value="v">
+        <br>
+        <br>
+        <input type="button" class="btn" id="COButton" value="Crush Once">
+      </form>
+
+    </div>
+  </div> <!-- class="row" -->
+</div> <!-- class="container" -->
+</body>
+
+</html>
